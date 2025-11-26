@@ -27,11 +27,19 @@ document.getElementById("generateBtn").addEventListener("click", () => {
       if (posterImage) {
         posterImage.src = url;
       }
+      if (statusDiv) {
+        statusDiv.textContent = "Poster generated!";
+      }
     })
     .catch((error) => {
       console.error("Error fetching image:", error);
+      if (statusDiv) {
+        statusDiv.textContent = "Failed to load image. Using default.";
+      }
+      if (posterImage) {
+        posterImage.src = defaultImage;
+      }
     });
-
   // TODO:
   // 1. Update status to "Loading poster..."
   // 2. Fetch image from https://picsum.photos/800/400
