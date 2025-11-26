@@ -30,11 +30,13 @@ document.getElementById("generateBtn").addEventListener("click", async () => {
     }
     if (statusDiv) {
       statusDiv.textContent = "Poster generated!";
+      statusTimeOut()
     }
   } catch (error) {
     console.error("Error fetching image:", error);
     if (statusDiv) {
       statusDiv.textContent = "Failed to load image. Using default.";
+      statusTimeOut()
     }
     if (posterImage) {
       posterImage.src = defaultImage;
@@ -48,3 +50,11 @@ document.getElementById("generateBtn").addEventListener("click", async () => {
   // 5. Handle failures with defaults
 
 });
+
+function statusTimeOut() {
+  setTimeout(() => {
+    if (statusDiv) {
+      statusDiv.textContent = "";
+    }
+  }, 3000);
+}
