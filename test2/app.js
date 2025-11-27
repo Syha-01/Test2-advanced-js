@@ -15,6 +15,7 @@ if (posterImage) {
   posterImage.src = defaultImage;
 }
 
+//adding event listener for when button is clicked.
 document.getElementById("generateBtn").addEventListener("click", async () => {
 
   if (statusDiv) {
@@ -22,26 +23,40 @@ document.getElementById("generateBtn").addEventListener("click", async () => {
   }
 
   try {
-    const response = await fetch("https://picsum.photos/800/400");
-    const url = response.url;
+    const imageResponse = await fetch("https://picsum.photos/800/400");
+    const quoteResponse = await fetch("https://dummyjson.com/quotes/random");
+
+    console.log(imageResponse);
+    console.log(quoteResponse);
+
+    const imageUrl = imageResponse.url;
+    const quoteData = await quoteResponse.json();
+    const quote = quoteData.quote;
 
     if (posterImage) {
-      posterImage.src = url;
+      posterImage.src = imageUrl;
+    }
+    if (posterQuote) {
+      posterQuote.textContent = quote;
     }
     if (statusDiv) {
       statusDiv.textContent = "Poster generated!";
       statusTimeOut()
     }
   } catch (error) {
-    console.error("Error fetching image:", error);
+    console.error("Error fetching content:", error);
     if (statusDiv) {
-      statusDiv.textContent = "Failed to load image. Using default.";
+      statusDiv.textContent = "Failed to load content. Using defaults.";
       statusTimeOut()
     }
     if (posterImage) {
       posterImage.src = defaultImage;
     }
+    if (posterQuote) {
+      posterQuote.textContent = defaultQuote;
+    }
   }
+
   // TODO:
   // 1. Update status to "Loading poster..."
   // 2. Fetch image from https://picsum.photos/800/400
@@ -58,3 +73,4 @@ function statusTimeOut() {
     }
   }, 3000);
 }
+
