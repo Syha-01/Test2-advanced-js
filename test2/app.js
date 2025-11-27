@@ -16,46 +16,58 @@ if (posterImage) {
 }
 
 //adding event listener for when button is clicked.
-document.getElementById("generateBtn").addEventListener("click", async () => {
+document.getElementById("generateBtn").addEventListener("click", () => {
 
   if (statusDiv) {
     statusDiv.textContent = "Generating poster...";
   }
 
-  try {
-    const imageResponse = await fetch("https://picsum.photos/800/400");
-    const quoteResponse = await fetch("https://dummyjson.com/quotes/random");
+  // Fetch both image and quote in parallel using Promise.all
+  Promise.all([
+    fetch("https://picsum.photos/800/400"),
+    fetch("https://dummyjson.com/quotes/random")
+  ])
+    .then((responses) => {
+      const imageResponse = responses[0];
+      const quoteResponse = responses[1];
 
-    console.log(imageResponse);
-    console.log(quoteResponse);
+      console.log(imageResponse);
+      console.log(quoteResponse);
 
-    const imageUrl = imageResponse.url;
-    const quoteData = await quoteResponse.json();
-    const quote = quoteData.quote;
+      const imageUrl = imageResponse.url;
 
-    if (posterImage) {
-      posterImage.src = imageUrl;
-    }
-    if (posterQuote) {
-      posterQuote.textContent = quote;
-    }
-    if (statusDiv) {
-      statusDiv.textContent = "Poster generated!";
-      statusTimeOut()
-    }
-  } catch (error) {
-    console.error("Error fetching content:", error);
-    if (statusDiv) {
-      statusDiv.textContent = "Failed to load content. Using defaults.";
-      statusTimeOut()
-    }
-    if (posterImage) {
-      posterImage.src = defaultImage;
-    }
-    if (posterQuote) {
-      posterQuote.textContent = defaultQuote;
-    }
-  }
+      // Parse the quote JSON
+      return quoteResponse.json().then((quoteData) => {
+        return { imageUrl, quote: quoteData.quote };
+      });
+    })
+    .then((data) => {
+      // Update DOM with fetched data
+      if (posterImage) {
+        posterImage.src = data.imageUrl;
+      }
+      if (posterQuote) {
+        posterQuote.textContent = data.quote;
+      }
+      if (statusDiv) {
+        statusDiv.textContent = "Poster generated!";
+        statusTimeOut();
+      }
+    })
+    .catch((error) => {
+      // Handle errors
+      console.error("Error fetching content:", error);
+      if (statusDiv) {
+        statusDiv.textContent = "Failed to load content. Using defaults.";
+        statusTimeOut();
+      }
+      if (posterImage) {
+        posterImage.src = defaultImage;
+      }
+      if (posterQuote) {
+        posterQuote.textContent = defaultQuote;
+      }
+    });
 
   // TODO:
   // 1. Update status to "Loading poster..."
