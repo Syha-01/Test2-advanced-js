@@ -22,25 +22,35 @@ document.getElementById("generateBtn").addEventListener("click", () => {
     statusDiv.textContent = "Generating poster...";
   }
 
-  // Fetch both image and quote in parallel using Promise.all
-  Promise.all([
-    fetch("https://picsum.photos/800/400"),
-    fetch("https://dummyjson.com/quotes/random")
-  ])
-    .then((responses) => {
-      const imageResponse = responses[0];
-      const quoteResponse = responses[1];
+  // Create a Promise to fetch both image and quote
+  let fetchPosterDataPromise = new Promise((resolve, reject) => {
+    // Fetch image
+    fetch("https://picsum.photos/800/400")
+      .then((imageResponse) => {
+        console.log(imageResponse);
+        const imageUrl = imageResponse.url;
 
-      console.log(imageResponse);
-      console.log(quoteResponse);
-
-      const imageUrl = imageResponse.url;
-
-      // Parse the quote JSON
-      return quoteResponse.json().then((quoteData) => {
-        return { imageUrl, quote: quoteData.quote };
+        // Fetch quote
+        fetch("https://dummyjson.com/quotes/random")
+          .then((quoteResponse) => {
+            console.log(quoteResponse);
+            return quoteResponse.json();
+          })
+          .then((quoteData) => {
+            // Resolve with both data
+            resolve({ imageUrl, quote: quoteData.quote });
+          })
+          .catch((error) => {
+            reject("Error fetching quote: " + error.message);
+          });
+      })
+      .catch((error) => {
+        reject("Error fetching image: " + error.message);
       });
-    })
+  });
+
+  // Use the Promise
+  fetchPosterDataPromise
     .then((data) => {
       // Update DOM with fetched data
       if (posterImage) {
@@ -58,7 +68,7 @@ document.getElementById("generateBtn").addEventListener("click", () => {
       // Handle errors
       console.error("Error fetching content:", error);
       if (statusDiv) {
-        statusDiv.textContent = "Failed to load content. Using defaults.";
+        statusDiv.textContent = "Failed to load content. Using default.";
         statusTimeOut();
       }
       if (posterImage) {
@@ -67,6 +77,9 @@ document.getElementById("generateBtn").addEventListener("click", () => {
       if (posterQuote) {
         posterQuote.textContent = defaultQuote;
       }
+    })
+    .finally(() => {
+      console.log("Poster generated a successfully");
     });
 
   // TODO:
