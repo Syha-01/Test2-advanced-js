@@ -22,42 +22,39 @@ document.getElementById("generateBtn").addEventListener("click", () => {
     statusDiv.textContent = "Generating poster...";
   }
 
-  // Create a Promise to fetch both image and quote
-  let fetchPosterDataPromise = new Promise((resolve, reject) => {
-    // Fetch image
-    fetch("https://picsum.photos/800/400")
-      .then((imageResponse) => {
-        console.log(imageResponse);
-        const imageUrl = imageResponse.url;
+  // 2 & 3. Fetch image and quote using fetch API
+  const imagePromise = fetch("https://picsum.photos/800/400")
+    .then(response => {
+      if (!response.ok) throw new Error("Image fetch failed");
+      return response.url;
+    })
+    .catch(() => {
+      // Fallback to local image using fetch
+      return fetch(defaultImage)
+        .then(response => {
+          if (!response.ok) throw new Error("Local image fetch failed");
+          return response.url;
+        });
+    });
 
-        // Fetch quote
-        fetch("https://dummyjson.com/quotes/random")
-          .then((quoteResponse) => {
-            console.log(quoteResponse);
-            return quoteResponse.json();
-          })
-          .then((quoteData) => {
-            // Resolve with both data
-            resolve({ imageUrl, quote: quoteData.quote });
-          })
-          .catch((error) => {
-            reject("Error fetching quote: " + error.message);
-          });
-      })
-      .catch((error) => {
-        reject("Error fetching image: " + error.message);
-      });
-  });
+  const quotePromise = fetch("https://dummyjson.com/quotes/random")
+    .then(response => {
+      if (!response.ok) throw new Error("Quote fetch failed");
+      return response.json();
+    })
+    .then(data => data.quote)
+    .catch(() => {
+      return defaultQuote;
+    });
 
-  // Use the Promise
-  fetchPosterDataPromise
-    .then((data) => {
+  Promise.all([imagePromise, quotePromise])
+    .then(([imageUrl, quote]) => {
       // Update DOM with fetched data
       if (posterImage) {
-        posterImage.src = data.imageUrl;
+        posterImage.src = imageUrl;
       }
       if (posterQuote) {
-        posterQuote.textContent = data.quote;
+        posterQuote.textContent = quote;
       }
       if (statusDiv) {
         statusDiv.textContent = "Poster generated!";
